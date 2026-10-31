@@ -210,30 +210,33 @@
 - **FastAPI** — возможный API для следующего этапа;
 - **PostgreSQL** (или SQLite для локального прототипа) — база **обезличенных производных данных**.
 
-Опубликованная структура MVP (часть каталогов расширится в следующих версиях):
+Фактическая структура опубликованного MVP:
 
 ```text
 rt-plan-intelligence/
-├── README.md
-├── LICENSE
-├── pyproject.toml
-├── app/
-│   ├── ui/                   # интерфейс
-│   ├── api/                  # API (следующий этап)
-│   └── services/             # задачи анализа
-├── rtpi/
-│   ├── dicom/                # импорт и валидация DICOM
-│   ├── geometry/             # геометрия MLC и jaws
-│   ├── metrics/              # стандартизованные метрики
-│   ├── qa/                   # обработка измерений
-│   ├── dose/                 # RTDOSE/RTSTRUCT
-│   ├── statistics/           # анализ когорт
-│   └── prediction/           # исследовательские модели
+├── README.md                 # руководство на русском
+├── LICENSE                   # MIT
+├── SECURITY.md               # политика безопасности
+├── pyproject.toml            # пакет и зависимости
+├── requirements.txt          # запуск в Streamlit Cloud
+├── app.py                    # локальный Streamlit UI
+├── src/rtpi/
+│   ├── __init__.py
+│   ├── dicom.py              # извлечение MLCX из DICOM RTPLAN
+│   ├── metrics.py            # площадь, SAS proxy, Leaf Travel
+│   └── cli.py                # batch-экспорт CSV
 ├── docs/
-│   ├── metrics/              # формулы, источники и ограничения
-│   └── validation/           # эталонные тесты
-└── tests/                    # тесты на синтетических данных
+│   ├── METRICS.md            # точные определения полей
+│   └── DATA_MODEL.md         # схема будущей базы QA
+├── tests/
+│   ├── test_metrics.py       # синтетические unit tests
+│   ├── test_dicom.py         # синтетический RTPLAN
+│   └── test_ui.py            # Streamlit smoke test
+└── .github/workflows/
+    └── ci.yml                # Python 3.10 / 3.12
 ```
+
+В дальнейшем появятся отдельные модули QA, RTDOSE/RTSTRUCT, статистики и прогнозирования; на этапе v0.1.0 они ещё не реализованы.
 
 ## 9. Установка и запуск v0.1.0
 
