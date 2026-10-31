@@ -1,6 +1,7 @@
 """RT Plan Intelligence research UI. DICOM files are read from memory, not stored."""
 from __future__ import annotations
 from io import BytesIO
+import os
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
@@ -59,8 +60,16 @@ with st.expander("Конфиденциальность и ограничения
     а не временной интеграл движущейся апертуры.
     """)
 
+# Public deployments start in synthetic-only mode: no DICOM can be uploaded.
+# Explicit opt-in is required on a controlled LOCAL workstation.
+local_upload = os.environ.get("RTPI_ENABLE_LOCAL_UPLOAD", "0") == "1"
 a,b=st.columns([2,1])
-with a: files=st.file_uploader("Загрузить обезличенные DICOM RTPLAN",type=["dcm","dicom"],accept_multiple_files=True)
+with a:
+    if local_upload:
+        files=st.file_uploader("Загрузить обезличенные DICOM RTPLAN",type=["dcm","dicom"],accept_multiple_files=True)
+    else:
+        files=[]
+        st.info("Безопасный режим: загрузка DICOM отключена. Для защищённого локального запуска установите RTPI_ENABLE_LOCAL_UPLOAD=1.")
 with b: demo=st.checkbox("Синтетический пример (без DICOM)")
 results=[]
 if files:
