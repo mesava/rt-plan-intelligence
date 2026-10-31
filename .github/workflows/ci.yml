@@ -25,3 +25,16 @@ jobs:
         run: python -m compileall -q src app.py
       - name: Tests
         run: python -m pytest -q
+
+  web-tests:
+    name: JavaScript synthetic MCSv tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: JavaScript syntax
+        run: node --check web/complexity.js
+      - name: Reference synthetic metric cases
+        run: node --test web/test_complexity.cjs

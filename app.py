@@ -48,7 +48,7 @@ def aperture_figure(cp:dict):
     return fig
 
 st.title("RT Plan Intelligence")
-st.caption("v0.1.0 · Геометрический анализ RTPLAN (MLCX) · Исследовательское ПО")
+st.caption("v0.2.0 · Геометрический анализ RTPLAN (MLCX) · Исследовательское ПО")
 st.warning("Не использовать для клинического допуска плана. Технические показатели не заменяют дозиметрические QA-измерения.")
 with st.expander("Конфиденциальность и ограничения"):
     st.markdown("""**Пациентские DICOM нельзя загружать в публичную демонстрационную версию.**
@@ -101,6 +101,17 @@ if results:
         st.metric("Leaf Travel, мм",f"{result['leaf_travel_total_mm']:,.1f}")
         st.caption("Leaf Travel учитывает все лепестки, включая вне jaws.")
     cp_data=pd.DataFrame([{k:v for k,v in cp.items() if not isinstance(v,list)} for cp in cps])
+    st.subheader("MCSv · LSV · beamAAV (исследовательские)")
+    st.caption("Jaw-aware реализация с весами ΔCMW. Эти показатели не являются подтверждением доставляемости.")
+    qa_cols=st.columns(3)
+    for c,key,label in zip(qa_cols,
+                            ["mcs_vmat_jaw_clipped","lsv_cp_mu_weighted","aav_beam_cp_mu_weighted"],
+                            ["MCSv","LSV","beamAAV"]):
+        with c:
+            value=result[key]
+            st.metric(label,"—" if value is None else f"{value:.3f}")
+    if "lsv_cp" in cp_data and "aav_beam_cp" in cp_data:
+        st.line_chart(cp_data.set_index("cp_index")[["lsv_cp","aav_beam_cp"]])
     st.subheader("Динамика контрольных точек")
     st.line_chart(cp_data.set_index("cp_index")[["aperture_area_mm2","travel_from_previous_cp_mm"]])
     st.dataframe(cp_data,hide_index=True,use_container_width=True)
