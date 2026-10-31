@@ -76,7 +76,7 @@ main{min-width:0;padding:30px 46px 65px;max-width:1620px;width:100%;margin:0 aut
   <div class="section-title" id="metrics"><h2>Технические показатели</h2><p>Вычислены из синтетических координат</p></div>
   <section class="panel table-scroll"><table class="table"><thead><tr><th>Метрика</th><th>Определение в демо</th><th class="right">Значение</th></tr></thead><tbody id="metricrows"></tbody></table></section>
   <section class="method-grid" id="method">
-    <div class="panel method"><h3>Как интерпретировать эту версию</h3><p>Демо иллюстрирует геометрические вычисления. Включены исследовательские jaw-aware MCSv, LSV и beamAAV. Они требуют независимой сверки и не содержат реальных QA-измерений.</p><div class="check"><b>✓</b><span>Апертура рассчитывается по пересечению MLC и jaws.</span></div><div class="check"><b>✓</b><span>SAS5 оценивается по открытым парам на конечных CP с весом ΔCMW.</span></div><div class="check"><b>✓</b><span>Leaf Travel суммирует перемещения обеих банков, включая лепестки вне jaws.</span></div><a class="outline" href="https://github.com/mesava/rt-plan-intelligence/blob/main/docs/METRICS.md" target="_blank" rel="noopener noreferrer">Формулы и ограничения ↗</a></div>
+    <div class="panel method"><h3>Как интерпретировать эту версию</h3><p>Демо иллюстрирует геометрические вычисления. Для VMAT включены исследовательские jaw-aware MCSv, LSV и beamAAV. Для IMRT пока показывается геометрия MLC, а эти индексы не рассчитываются.</p><div class="check"><b>✓</b><span>Апертура рассчитывается по пересечению MLC и jaws.</span></div><div class="check"><b>✓</b><span>SAS5 оценивается по открытым парам на конечных CP с весом ΔCMW.</span></div><div class="check"><b>✓</b><span>Leaf Travel суммирует перемещения обеих банков, включая лепестки вне jaws.</span></div><a class="outline" href="https://github.com/mesava/rt-plan-intelligence/blob/main/docs/METRICS.md" target="_blank" rel="noopener noreferrer">Формулы и ограничения ↗</a></div>
     <div class="panel method"><h3>Следующие этапы</h3><div class="soon"><div class="soon-row"><span>Валидация MCS / LSV / AAV</span><em>В разработке</em></div><div class="soon-row"><span>Обработка RTPLAN из DICOM</span><em>Локальная версия</em></div><div class="soon-row"><span>Интеграция XCC / PDF QA</span><em>Запланировано</em></div><div class="soon-row"><span>Модели предсказания Gamma</span><em>Исследование</em></div></div></div>
   </section>
   <footer class="footer"><span>RT Plan Intelligence © 2026 · MIT · Исследовательское ПО, не медицинское изделие</span><span>Демонстрация не использует файлы пациентов · <a href="https://github.com/mesava/rt-plan-intelligence" target="_blank" rel="noopener noreferrer">GitHub ↗</a></span></footer>
@@ -128,7 +128,7 @@ function metrics(cps,cfg){
  const median=sorted.length?(sorted[Math.floor((sorted.length-1)/2)]+sorted[Math.floor(sorted.length/2)])/2:0;
  const travel=travels.reduce((a,b)=>a+b,0);
  const sasWeighted=sas.slice(1).reduce((a,b)=>a+b,0)/(cps.length-1);
- const complexity=window.RTPIComplexity.calculate(cps,edges,xj,yj);
+ const complexity=cfg.label==="VMAT"?window.RTPIComplexity.calculate(cps,edges,xj,yj):{mcs:null,lsv:null,aav:null};
  return {areas,travels,meanArea:average,sas5:sasWeighted,totalTravel:travel,maxTravel:Math.max(...travels),meanTravel:travel/(cps.length-1),medianGap:median,...complexity};
 }
 function fmt(v,d=1){return Number(v).toLocaleString("ru-RU",{maximumFractionDigits:d,minimumFractionDigits:d});}

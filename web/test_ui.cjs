@@ -27,6 +27,7 @@ test("browser synthetic demo initializes and navigates plans/CP",()=>{
  assert.match(el("cpbadge").textContent,/11/);
  el("plan").value="imrt";el("plan").handlers.change();
  assert.equal(el("mcp").textContent,"20");
- assert.match(el("mlsv").textContent,/0[,.][0-9]+/);
- assert.match(el("maav").textContent,/0[,.][0-9]+/);
+ assert.equal(el("mmcs").textContent,"—");
+ assert.equal(el("mlsv").textContent,"—");
+ assert.equal(el("maav").textContent,"—");
 });

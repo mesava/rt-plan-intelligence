@@ -7,7 +7,7 @@ from pydicom.sequence import Sequence
 from pydicom.uid import RTPlanStorage,ExplicitVRLittleEndian,generate_uid
 from rtpi.dicom import read_rtplan
 
-def synthetic_plan(modality="RTPLAN",orientation="MLCX",bad_boundaries=False):
+def synthetic_plan(modality="RTPLAN",orientation="MLCX",bad_boundaries=False,arc=False):
     meta=FileMetaDataset()
     meta.MediaStorageSOPClassUID=RTPlanStorage
     meta.MediaStorageSOPInstanceUID=generate_uid()
@@ -26,6 +26,7 @@ def synthetic_plan(modality="RTPLAN",orientation="MLCX",bad_boundaries=False):
     pos.LeafJawPositions=[-3,-5,3,5]
     cp0.BeamLimitingDevicePositionSequence=Sequence([pos])
     cp1=Dataset();cp1.ControlPointIndex=1;cp1.CumulativeMetersetWeight=1
+    if arc: cp1.GantryAngle=100
     beam.ControlPointSequence=Sequence([cp0,cp1])
     ds.BeamSequence=Sequence([beam])
     ref=Dataset();ref.ReferencedBeamNumber=1;ref.BeamMeterset=100
@@ -53,3 +54,13 @@ def test_reject_mlc_orientation():
 def test_reject_bad_boundaries():
     with pytest.raises(ValueError,match="boundaries"):
         read_rtplan(synthetic_plan(bad_boundaries=True))
+
+def test_static_gantry_does_not_get_vmat_mcs():
+    result=read_rtplan(synthetic_plan())[0]
+    assert result["mcs_vmat_jaw_clipped"] is None
+    assert result["lsv_cp_mu_weighted"] is not None
+
+def test_dynamic_arc_gets_vmat_mcs():
+    result=read_rtplan(synthetic_plan(arc=True))[0]
+    assert result["mcs_vmat_jaw_clipped"] is not None
+    assert 0 <= result["mcs_vmat_jaw_clipped"] <= 1

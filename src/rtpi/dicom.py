@@ -68,6 +68,20 @@ def read_rtplan(source:str|Path|BinaryIO|BytesIO, *, include_control_points:bool
             raise ValueError("Final cumulative meterset weight does not match last CP")
         num=int(beam.BeamNumber)
         out=calculate_beam(num,f"Beam {num}",aps,cmw,mu_by_beam.get(num)).to_dict()
+        # The VMAT interval MCSv is not a score for static-gantry IMRT.
+        # Infer arc rotation only from actual changes in gantry angle at CPs.
+        rotates = any(
+            a is not None and b is not None and
+            abs(((b-a+180.) % 360.) - 180.) > 1e-5
+            for a,b in zip(angles[:-1],angles[1:])
+        )
+        if not rotates:
+            out["mcs_vmat_jaw_clipped"] = None
+            out["notes"] = (
+                "No changing gantry angle: VMAT MCSv not applicable. "
+                "LSV/beamAAV are geometric CP descriptors only."
+            )
+
         if include_control_points: out["control_point_data"]=control_point_records(aps,cmw,angles)
         summaries.append(out)
     if not summaries:
