@@ -67,7 +67,7 @@ def read_rtplan(source:str|Path|BinaryIO|BytesIO, *, include_control_points:bool
         if hasattr(beam,"FinalCumulativeMetersetWeight") and not np.isclose(float(beam.FinalCumulativeMetersetWeight),cmw[-1],atol=1e-5):
             raise ValueError("Final cumulative meterset weight does not match last CP")
         num=int(beam.BeamNumber)
-        out=calculate_beam(num,str(getattr(beam,"BeamName",f"Beam {num}")),aps,cmw,mu_by_beam.get(num)).to_dict()
+        out=calculate_beam(num,f"Beam {num}",aps,cmw,mu_by_beam.get(num)).to_dict()
         if include_control_points: out["control_point_data"]=control_point_records(aps,cmw,angles)
         summaries.append(out)
     if not summaries:
