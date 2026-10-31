@@ -37,4 +37,4 @@ jobs:
       - name: JavaScript syntax
         run: node --check web/complexity.js
       - name: Reference synthetic metric cases
-        run: node --test web/test_complexity.cjs
+        run: node --test web/test_complexity.cjs web/test_ui.cjs
