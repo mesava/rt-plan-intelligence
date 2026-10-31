@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#101c31">
+<title>RT Plan Intelligence — Исследовательская платформа</title>
+<meta name="description" content="RT Plan Intelligence: интерактивная демонстрация анализа MLC и технических метрик RTPLAN. Только синтетические данные.">
+<style>
+:root{--ink:#19283d;--muted:#6e7a8d;--line:#e2e9f1;--navy:#0e1c31;--accent:#087f9c;--green:#168775;--bg:#f5f8fb;--white:#fff;--soft:#edf6f8}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+a{color:inherit;text-decoration:none}button,select,input{font:inherit}button{cursor:pointer}
+.layout{display:grid;grid-template-columns:238px minmax(0,1fr);min-height:100vh}
+aside{background:var(--navy);color:#d9e5f1;padding:28px 17px;display:flex;flex-direction:column;gap:28px;position:sticky;top:0;height:100vh}
+.brand{display:flex;align-items:center;gap:12px;padding:4px 11px}.brandmark{height:39px;width:39px;border:1px solid #5a96ab;border-radius:12px;display:grid;place-items:center;background:linear-gradient(145deg,#15435a,#192b44)}.brandmark svg{width:23px;height:23px}.brandname{font-weight:780;font-size:14px;line-height:1.12;letter-spacing:.02em}.brandsub{font-size:10px;color:#95a9bc;letter-spacing:.15em;margin-top:5px}
+.nav-label{color:#8397b0;padding:0 15px;font-size:10px;letter-spacing:.17em;font-weight:740}
+.nav{display:grid;gap:6px}.nav a{padding:10px 13px;border-radius:9px;display:flex;align-items:center;gap:11px;color:#afc0d1;font-size:13px;font-weight:600}.nav a:hover,.nav a.active{background:#233752;color:#fff}.nav svg{width:17px;height:17px}
+.side-bottom{margin-top:auto;border-top:1px solid #2b4058;padding:20px 13px 0;font-size:12px;color:#a7b7cb}.side-bottom p{margin:7px 0 13px}.side-bottom a{color:#87d5e0;text-decoration:underline;text-underline-offset:3px}
+main{min-width:0;padding:30px 46px 65px;max-width:1620px;width:100%;margin:0 auto}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:34px}.path{color:#778598;font-size:13px}.path strong{color:var(--ink);font-weight:700}.top-right{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.top-badge{display:inline-flex;align-items:center;gap:7px;color:#197665;background:#e6f5f0;border:1px solid #c3e9dd;padding:7px 11px;border-radius:20px;font-size:11px;font-weight:750}.dot{width:7px;height:7px;border-radius:50%;background:#27a080}.version{color:#73829a;font-size:12px}
+.hero{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:25px}.eyebrow{color:var(--accent);text-transform:uppercase;letter-spacing:.2em;font-size:11px;font-weight:800}.hero h1{font-size:clamp(28px,3vw,39px);line-height:1.19;letter-spacing:-.04em;font-weight:750;margin:8px 0 8px}.hero p{color:var(--muted);margin:0;max-width:760px}.outline{border:1px solid #cfdae6;background:white;border-radius:9px;padding:10px 15px;display:inline-flex;gap:8px;align-items:center;font-weight:700;font-size:13px;white-space:nowrap}.outline:hover{border-color:var(--accent);color:var(--accent)}
+.notice{background:#edf8fa;border:1px solid #cce9ed;border-radius:12px;padding:14px 18px;color:#2b6170;font-size:13px;margin-bottom:24px;display:flex;gap:12px;align-items:flex-start}.notice svg{flex:none;margin-top:1px}.notice strong{color:#15586a}
+.controlbar{background:#fff;border:1px solid var(--line);border-radius:12px;padding:17px 20px;margin-bottom:18px;display:flex;gap:16px;justify-content:space-between;align-items:center;flex-wrap:wrap;box-shadow:0 2px 10px #192b4205}
+.field{display:flex;flex-direction:column;gap:4px;min-width:260px}.field label{font-size:11px;letter-spacing:.06em;font-weight:700;color:#8391a2;text-transform:uppercase}.field select{background:#fff;border:1px solid #d4dee8;border-radius:8px;padding:9px 12px;font-weight:680;color:var(--ink);max-width:400px;width:100%}
+.control-info{display:flex;gap:13px;align-items:center}.divider-vert{width:1px;height:30px;background:var(--line)}.mini-label{font-size:11px;color:var(--muted)}.mini-value{font-size:14px;font-weight:750}.tag{color:#417588;background:#f0f7fb;border:1px solid #d6e9f1;border-radius:100px;padding:6px 10px;font-size:11px;font-weight:740}
+.metric-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px}
+.metric-card{background:white;border:1px solid var(--line);border-radius:12px;padding:18px 19px;min-width:0}.metric-top{display:flex;align-items:center;justify-content:space-between;gap:10px}.metric-name{font-size:12px;color:var(--muted);font-weight:650}.metric-icon{display:grid;place-items:center;height:29px;width:29px;border-radius:8px;background:#edf5f8;color:#147d98}.metric-value{font-size:28px;font-weight:780;letter-spacing:-.045em;margin-top:11px;line-height:1.2;font-variant-numeric:tabular-nums}.metric-unit{font-size:12px;color:#8492a5;font-weight:500;margin-left:5px}.metric-foot{font-size:11px;color:#8b98a7;margin-top:7px}
+.panel-grid{display:grid;grid-template-columns:1.04fr .96fr;gap:16px;margin-bottom:18px}.panel{background:white;border:1px solid var(--line);border-radius:13px;box-shadow:0 2px 10px #1c294007;min-width:0}.panel-header{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding:18px 21px 14px;border-bottom:1px solid #ebf0f5}.panel-title{font-size:16px;font-weight:760;letter-spacing:-.016em}.panel-sub{color:#8a98a9;font-size:11px;margin-top:3px}.panel-chip{color:#60798b;font-size:11px;background:#f3f7fa;border:1px solid #e3eaf2;padding:6px 10px;border-radius:20px;white-space:nowrap}
+.mlcviz{padding:16px 19px 14px;min-height:340px;display:grid;place-items:center;background:radial-gradient(circle at 50% 50%,#f7fcfc 0%,white 76%)}#mlcSvg{width:100%;height:305px;display:block}
+.cp-ctrl{padding:11px 20px 20px;border-top:1px solid var(--line)}.cp-details{display:flex;justify-content:space-between;font-size:12px;margin-bottom:8px}.cp-details strong{font-variant-numeric:tabular-nums}.slider{width:100%;accent-color:#16869b}.scale{display:flex;justify-content:space-between;font-size:10px;color:#9ba7b4}
+.chart-wrap{padding:17px 18px 7px}#trend{width:100%;height:284px;display:block}.legend{display:flex;align-items:center;gap:20px;padding:4px 20px 19px;font-size:12px;color:#65778c;flex-wrap:wrap}.legend-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;background:#147f9d}.legend-dot.alt{background:#e2a16b}.legend-note{font-size:11px;color:#99a5b2}
+.section-title{display:flex;align-items:baseline;justify-content:space-between;gap:15px;margin:30px 1px 14px}.section-title h2{font-size:20px;letter-spacing:-.02em;margin:0}.section-title p{margin:0;color:var(--muted);font-size:12px}
+.table-scroll{overflow-x:auto}.table{border-collapse:collapse;width:100%;font-size:13px}.table th{text-align:left;background:#f9fbfd;color:#8290a2;font-weight:700;font-size:11px;letter-spacing:.03em;padding:12px 21px}.table td{border-top:1px solid #edf1f6;padding:13px 21px}.table .right{text-align:right;font-variant-numeric:tabular-nums}.table .code{color:#097897;font-weight:750}.table .muted{color:#788798}
+.method-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:16px;margin-top:18px}.method{padding:20px 23px}.method h3{font-size:15px;margin:0 0 10px}.method p{margin:0 0 12px;color:#67798d;font-size:13px}.check{display:flex;gap:10px;align-items:flex-start;font-size:12px;color:#586c82;margin:10px 0}.check b{color:#139183}.soon{display:flex;flex-direction:column;gap:9px}.soon-row{display:flex;align-items:center;justify-content:space-between;border:1px solid #e8edf3;border-radius:8px;padding:10px 12px;gap:9px;font-size:12px;font-weight:650}.soon-row em{font-size:10px;color:#7d8b9e;font-style:normal;white-space:nowrap}
+.footer{border-top:1px solid #e4eaf2;margin-top:33px;padding-top:20px;font-size:11px;color:#8c9aa9;display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media(max-width:1100px){main{padding:25px}.layout{grid-template-columns:192px minmax(0,1fr)}.metric-grid{grid-template-columns:repeat(2,1fr)}.panel-grid,.method-grid{grid-template-columns:1fr}.mlcviz{min-height:290px}}
+@media(max-width:680px){.layout{display:block}aside{height:auto;position:relative;padding:12px 16px;gap:7px}.brand{padding:0}.nav-label,.side-bottom{display:none}.nav{display:flex;flex-wrap:wrap;gap:3px}.nav a{font-size:11px;padding:8px 9px}.nav svg{display:none}main{padding:21px 14px 42px}.topbar{margin-bottom:21px}.hero{align-items:flex-start;flex-direction:column;gap:12px}.hero h1{font-size:28px}.metric-grid{gap:9px}.metric-card{padding:13px}.metric-value{font-size:23px}.panel-header{padding:16px}.controlbar{padding:14px}.field{width:100%;min-width:unset}.notice{padding:13px}.table th,.table td{padding:11px 12px}.top-badge{font-size:10px}}
+</style>
+</head>
+<body>
+<div class="layout">
+<aside>
+  <a class="brand" href="#overview" aria-label="RT Plan Intelligence">
+    <span class="brandmark"><svg viewBox="0 0 24 24" fill="none" stroke="#a4e4e7" stroke-width="1.6"><rect x="4" y="5" width="16" height="14" rx="3"/><path d="M4 10h16M9 5v14M15 5v14"/><path d="m10 12 2 2 3-4" stroke="#67cab1"/></svg></span>
+    <span><span class="brandname">RT Plan<br>Intelligence</span><span class="brandsub">RESEARCH PLATFORM</span></span>
+  </a>
+  <span class="nav-label">РАБОЧАЯ ОБЛАСТЬ</span>
+  <nav class="nav" aria-label="Разделы">
+    <a class="active" href="#overview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg>Обзор</a>
+    <a href="#apertures"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 8h18M3 13h18M3 18h18"/></svg>MLC и контрольные точки</a>
+    <a href="#metrics"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V9m5 10V5m5 14v-7m5 7V3"/></svg>Метрики</a>
+    <a href="#method"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-9v1"/></svg>Методология</a>
+  </nav>
+  <div class="side-bottom"><strong>Открытый проект</strong><p>Платформа для исследования сложности IMRT/VMAT и её связи с результатами QA.</p><a href="https://github.com/mesava/rt-plan-intelligence" target="_blank" rel="noopener noreferrer">Исходный код на GitHub ↗</a></div>
+</aside>
+<main id="overview">
+  <div class="topbar"><div class="path">Платформа <span style="margin:0 8px;color:#bec8d4">/</span><strong>Интерактивная демонстрация</strong></div><div class="top-right"><span class="version">v0.1 · Web demo</span><span class="top-badge"><span class="dot"></span>Синтетические данные</span></div></div>
+  <header class="hero"><div><div class="eyebrow">Техническая аналитика лучевой терапии</div><h1>Анализ модуляции плана</h1><p>Исследуйте геометрию MLC, динамику контрольных точек и показатели сложности в интерактивной среде.</p></div><a class="outline" href="https://github.com/mesava/rt-plan-intelligence" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a></header>
+  <div class="notice"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16859a" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-10v1"/></svg><div><strong>Исследовательская демоверсия.</strong> Все показанные планы генерируются в браузере и не относятся к пациентам. Загрузка DICOM, измеренная gamma и прогноз QA пока недоступны. Не используйте демоданные для клинических решений.</div></div>
+  <div class="controlbar">
+    <div class="field"><label for="plan">Демонстрационный план</label><select id="plan"><option value="pelvis">VMAT · Тазовая область · 2 арки (синтетика)</option><option value="headneck">VMAT · Голова и шея · 2 арки (синтетика)</option><option value="imrt">IMRT · 7 полей (синтетика)</option></select></div>
+    <div class="control-info"><div><div class="mini-label">Методика</div><div class="mini-value" id="modality">VMAT</div></div><div class="divider-vert"></div><div><div class="mini-label">Луч / арка</div><div class="mini-value" id="beamlabel">Arc 1</div></div><div class="divider-vert"></div><span class="tag">Только демо</span></div>
+  </div>
+  <div class="metric-grid">
+    <div class="metric-card"><div class="metric-top"><span class="metric-name">Control Points</span><span class="metric-icon">◫</span></div><div class="metric-value" id="mcp">—</div><div class="metric-foot">в синтетической последовательности</div></div>
+    <div class="metric-card"><div class="metric-top"><span class="metric-name">Monitor Units</span><span class="metric-icon">◈</span></div><div class="metric-value" id="mmu">—</div><div class="metric-foot">условное значение демоплана</div></div>
+    <div class="metric-card"><div class="metric-top"><span class="metric-name">Aperture Area</span><span class="metric-icon">▱</span></div><div class="metric-value" id="marea">—</div><div class="metric-foot">средняя площадь, MU proxy · мм²</div></div>
+    <div class="metric-card"><div class="metric-top"><span class="metric-name">SAS5 · ΔCMW proxy</span><span class="metric-icon">≋</span></div><div class="metric-value" id="msas">—</div><div class="metric-foot">доля открытых пар с gap &lt; 5 мм</div></div>
+  </div>
+  <section class="panel-grid" id="apertures">
+    <article class="panel"><div class="panel-header"><div><div class="panel-title">Геометрия MLC</div><div class="panel-sub">Проекция апертуры на плоскость изоцентра · мм</div></div><span class="panel-chip" id="cpbadge">CP 00</span></div><div class="mlcviz"><svg id="mlcSvg" viewBox="0 0 480 305" role="img" aria-label="Схематичная геометрия апертуры MLC"></svg></div><div class="cp-ctrl"><div class="cp-details"><span>Контрольная точка</span><strong id="cplabel">CP 0 / 0</strong></div><input class="slider" id="cp" type="range" min="0" max="0" value="0" aria-label="Контрольная точка"><div class="scale"><span>Начало</span><span>Перемещение CP →</span><span>Конец</span></div></div></article>
+    <article class="panel"><div class="panel-header"><div><div class="panel-title">Динамика модуляции</div><div class="panel-sub">Aperture Area и перемещение MLC по CP</div></div><span class="panel-chip">Относительная шкала</span></div><div class="chart-wrap"><svg id="trend" viewBox="0 0 480 284" role="img" aria-label="Изменение площади апертур и перемещения лепестков"></svg></div><div class="legend"><span><i class="legend-dot"></i>Площадь апертуры</span><span><i class="legend-dot alt"></i>Leaf Travel / CP</span><span class="legend-note">Нормировано отдельно для отображения</span></div></article>
+  </section>
+  <div class="section-title" id="metrics"><h2>Технические показатели</h2><p>Вычислены из синтетических координат</p></div>
+  <section class="panel table-scroll"><table class="table"><thead><tr><th>Метрика</th><th>Определение в демо</th><th class="right">Значение</th></tr></thead><tbody id="metricrows"></tbody></table></section>
+  <section class="method-grid" id="method">
+    <div class="panel method"><h3>Как интерпретировать эту версию</h3><p>Демо иллюстрирует геометрические вычисления. Оно не реализует клинические стандартизованные MCS, AAV, LSV и не содержит данных реальных измерений.</p><div class="check"><b>✓</b><span>Апертура рассчитывается по пересечению MLC и jaws.</span></div><div class="check"><b>✓</b><span>SAS5 оценивается по открытым парам на конечных CP с весом ΔCMW.</span></div><div class="check"><b>✓</b><span>Leaf Travel суммирует перемещения обеих банков, включая лепестки вне jaws.</span></div><a class="outline" href="https://github.com/mesava/rt-plan-intelligence/blob/main/docs/METRICS.md" target="_blank" rel="noopener noreferrer">Формулы и ограничения ↗</a></div>
+    <div class="panel method"><h3>Следующие этапы</h3><div class="soon"><div class="soon-row"><span>Валидация MCS / LSV / AAV</span><em>В разработке</em></div><div class="soon-row"><span>Обработка RTPLAN из DICOM</span><em>Локальная версия</em></div><div class="soon-row"><span>Интеграция XCC / PDF QA</span><em>Запланировано</em></div><div class="soon-row"><span>Модели предсказания Gamma</span><em>Исследование</em></div></div></div>
+  </section>
+  <footer class="footer"><span>RT Plan Intelligence © 2026 · MIT · Исследовательское ПО, не медицинское изделие</span><span>Демонстрация не использует файлы пациентов · <a href="https://github.com/mesava/rt-plan-intelligence" target="_blank" rel="noopener noreferrer">GitHub ↗</a></span></footer>
+</main>
+</div>
+<script>
+(function(){
+"use strict";
+const configs={
+pelvis:{label:"VMAT",beam:"Arc 1 · из 2",mu:486,count:44,base:15.7,wave:4.2,shift:1.8,seed:0.4,osc:0.35},
+headneck:{label:"VMAT",beam:"Arc 1 · из 2",mu:702,count:44,base:10.4,wave:6.3,shift:3.2,seed:2.1,osc:0.63},
+imrt:{label:"IMRT",beam:"Field 1 · из 7",mu:164,count:20,base:12.1,wave:5.4,shift:2.2,seed:1.2,osc:0.44}
+};
+const N=24, edges=Array.from({length:N+1},(_,i)=>-60+i*5),xj=[-36,36],yj=[-55,55];
+const el=id=>document.getElementById(id);
+function makePlan(cfg){
+ const cps=[];
+ for(let t=0;t<cfg.count;t++){
+  const left=[],right=[];
+  for(let i=0;i<N;i++){
+   const y=(edges[i]+edges[i+1])/2;
+   const envelope=Math.max(0.1,1-Math.pow(y/66,2));
+   const ripple=Math.sin(i*cfg.osc+t*.47+cfg.seed)*cfg.wave+2.2*Math.cos(i*.73-t*.21);
+   let gap=Math.max(0,cfg.base*envelope+ripple-2.7);
+   if((i+t*3)%29===0) gap=0;
+   const center=cfg.shift*Math.sin(i*.25+t*.15+cfg.seed);
+   left.push(center-gap/2);right.push(center+gap/2);
+  }
+  cps.push({left,right,mu:t/(cfg.count-1),angle:180*t/(cfg.count-1)});
+ }
+ return cps;
+}
+function metrics(cps,cfg){
+ const areas=[],travels=[0],sas=[],gaps=[];
+ for(let t=0;t<cps.length;t++){
+  const cp=cps[t]; let area=0,opened=0,smalls=0;
+  for(let i=0;i<N;i++){
+   const h=Math.max(0,Math.min(edges[i+1],yj[1])-Math.max(edges[i],yj[0]));
+   const gap=Math.max(0,Math.min(cp.right[i],xj[1])-Math.max(cp.left[i],xj[0]));
+   area+=h*gap;
+   if(h>0 && gap>0){opened++;if(gap<5)smalls++;gaps.push(gap);}
+  }
+  areas.push(area);sas.push(opened?smalls/opened:0);
+  if(t>0){let distance=0;for(let i=0;i<N;i++)distance+=Math.abs(cp.left[i]-cps[t-1].left[i])+Math.abs(cp.right[i]-cps[t-1].right[i]);travels.push(distance);}
+ }
+ const average=areas.slice(1).reduce((a,b)=>a+b,0)/(areas.length-1);
+ const sorted=gaps.slice().sort((a,b)=>a-b);
+ const median=sorted.length?(sorted[Math.floor((sorted.length-1)/2)]+sorted[Math.floor(sorted.length/2)])/2:0;
+ const travel=travels.reduce((a,b)=>a+b,0);
+ const sasWeighted=sas.slice(1).reduce((a,b)=>a+b,0)/(cps.length-1);
+ return {areas,travels,meanArea:average,sas5:sasWeighted,totalTravel:travel,maxTravel:Math.max(...travels),meanTravel:travel/(cps.length-1),medianGap:median};
+}
+function fmt(v,d=1){return Number(v).toLocaleString("ru-RU",{maximumFractionDigits:d,minimumFractionDigits:d});}
+function drawMLC(cp){
+ let s='<rect width="480" height="305" rx="12" fill="#f8fbfd"/>';
+ const sx=2.23,sy=2.03,cx=240,cy=153;
+ const xx=x=>cx+x*sx,yy=y=>cy-y*sy;
+ for(let i=0;i<N;i++){
+  let top=yy(edges[i+1]),height=(edges[i+1]-edges[i])*sy;
+  const l=cp.left[i],r=cp.right[i];
+  s+='<rect x="'+xx(-87)+'" y="'+top+'" width="'+Math.max(0,xx(l)-xx(-87))+'" height="'+height+'" fill="#506c81" stroke="#d4e5ed" stroke-width=".72"/>';
+  s+='<rect x="'+xx(r)+'" y="'+top+'" width="'+Math.max(0,xx(87)-xx(r))+'" height="'+height+'" fill="#506c81" stroke="#d4e5ed" stroke-width=".72"/>';
+ }
+ s+='<rect x="'+xx(xj[0])+'" y="'+yy(yj[1])+'" width="'+(xj[1]-xj[0])*sx+'" height="'+(yj[1]-yj[0])*sy+'" fill="none" stroke="#da9e67" stroke-width="1.5" stroke-dasharray="5,4"/>';
+ s+='<path d="M'+xx(0)+' 18 V288 M40 '+yy(0)+' H440" stroke="#0a7f99" stroke-width="1" stroke-dasharray="3,5" opacity=".5"/>';
+ s+='<text x="18" y="24" fill="#7c8fa3" font-size="11">MLCX · X / Y (мм)</text>';
+ s+='<text x="17" y="290" fill="#73869b" font-size="10">Пунктир — jaws</text>';
+ el("mlcSvg").innerHTML=s;
+}
+function drawTrend(areas,travels,selected){
+ let s='<rect x="0" y="0" width="480" height="284" rx="9" fill="#fff"/>';
+ const x0=39,y0=22,w=422,h=216,n=areas.length;
+ for(let i=0;i<=4;i++){const y=y0+i*h/4;s+='<line x1="'+x0+'" x2="'+(x0+w)+'" y1="'+y+'" y2="'+y+'" stroke="#ebf0f5"/>';}
+ const points=values=>{const max=Math.max(1,...values);return values.map((v,i)=>(x0+i*w/(n-1)).toFixed(1)+','+(y0+h-(v/max)*h*.85).toFixed(1)).join(' ');};
+ s+='<polyline fill="none" stroke="#147f9d" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" points="'+points(areas)+'"/>';
+ s+='<polyline fill="none" stroke="#e2a16b" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" points="'+points(travels)+'"/>';
+ const sx=x0+selected*w/(n-1);
+ s+='<line x1="'+sx+'" x2="'+sx+'" y1="'+y0+'" y2="'+(y0+h)+'" stroke="#1a6476" stroke-dasharray="4,5" opacity=".7"/>';
+ s+='<text x="'+x0+'" y="261" font-size="11" fill="#93a1b0">CP 0</text><text x="'+(x0+w-39)+'" y="261" font-size="11" fill="#93a1b0">CP '+(n-1)+'</text>';
+ s+='<text x="'+(sx>340?sx-67:sx+7)+'" y="18" font-size="11" font-weight="700" fill="#306579">CP '+selected+'</text>';
+ el("trend").innerHTML=s;
+}
+function refresh(){
+ const key=el("plan").value,cfg=configs[key],cps=makePlan(cfg),stat=metrics(cps,cfg);
+ el("modality").textContent=cfg.label;el("beamlabel").textContent=cfg.beam;
+ el("mcp").textContent=String(cfg.count);el("mmu").innerHTML=fmt(cfg.mu,0)+'<span class="metric-unit">MU</span>';
+ el("marea").innerHTML=fmt(stat.meanArea,0)+'<span class="metric-unit">мм²</span>';
+ el("msas").innerHTML=fmt(stat.sas5*100,1)+'<span class="metric-unit">%</span>';
+ const table=[
+ ["Mean Aperture Area","Среднее по ΔCMW конечного CP",fmt(stat.meanArea,1)+" мм²"],
+ ["SAS5","Доля пар с 0 < gap < 5 мм; ΔCMW proxy",fmt(stat.sas5,3)],
+ ["Total Leaf Travel","Сумма смещений двух банков",fmt(stat.totalTravel,1)+" мм"],
+ ["Mean CP-to-CP Leaf Travel","Среднее движение на переход",fmt(stat.meanTravel,1)+" мм"],
+ ["Max CP-to-CP Leaf Travel","Максимальное движение на переход",fmt(stat.maxTravel,1)+" мм"],
+ ["Median Leaf Gap","Медиана положительных gap по CP",fmt(stat.medianGap,2)+" мм"]
+ ];
+ el("metricrows").innerHTML=table.map(r=>'<tr><td class="code">'+r[0]+'</td><td class="muted">'+r[1]+'</td><td class="right"><strong>'+r[2]+'</strong></td></tr>').join('');
+ el("cp").max=String(cfg.count-1);el("cp").value="0";
+ function show(){
+ const index=Number(el("cp").value);
+ el("cpbadge").textContent="CP "+String(index).padStart(2,"0");
+ el("cplabel").textContent="CP "+index+" / "+(cfg.count-1);
+ drawMLC(cps[index]);drawTrend(stat.areas,stat.travels,index);
+ }
+ el("cp").oninput=show;show();
+}
+el("plan").addEventListener("change",refresh);
+document.querySelectorAll(".nav a").forEach(a=>a.addEventListener("click",()=>{document.querySelectorAll(".nav a").forEach(x=>x.classList.remove("active"));a.classList.add("active");}));
+refresh();
+})();
+</script>
+</body></html>
