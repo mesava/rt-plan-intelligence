@@ -82,17 +82,17 @@ def test_local_case_summary_never_exports_names(tmp_path,monkeypatch):
     (d/"123456_QA1_Dose.dcm").write_bytes(b"synthetic")
     monkeypatch.setattr("rtpi.qa_cli._pdf_text",lambda _:REPORT_A)
     class X:
-        detector_count=1405
-        measurement_count=472
-        sample_interval_s=.2
-        last_sample_time_s=94.4
-        storage_mode="DoseAccumulated"
-        warnings=()
-    monkeypatch.setattr("rtpi.qa_cli.parse_xcc_metadata",lambda _:X())
+        detectors_per_frame=1405
+        frame_count=472
+        median_interval_s=.2
+        last_time_s=94.4
+        device_store_mode="DoseAccumulated"
+    monkeypatch.setattr("rtpi.qa_cli.read_xcc_metadata",lambda _:X())
     r=summarize_case(d,with_plan=False)
     assert r["case_index"]==7 and r["bundle_status"]=="complete"
     assert r["gamma_pass_percent"]==96.8
     assert r["xcc_detector_count"]==1405
+    assert r["qa_analysis_kind"]=="Gamma 3D"
     assert "Patient" not in str(r) and "123456" not in str(r)
 
 def test_ambiguous_bundle_requires_review(tmp_path):

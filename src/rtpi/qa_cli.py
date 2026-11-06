@@ -3,9 +3,10 @@ from __future__ import annotations
 import argparse
 import csv
 from pathlib import Path
-from .qa import parse_verisoft_pdf_text, parse_xcc_metadata
+from .qa import parse_verisoft_pdf_text
+from .xcc import read_xcc_metadata
 
-FIELDS = ("case_index","bundle_status","plan_present","dose_present","xcc_present",
+FIELDS = ("case_index","bundle_status","qa_analysis_kind","plan_present","dose_present","xcc_present",
           "pdf_present","beam_count","control_points","monitor_units",
           "gamma_pass_percent","gamma_fail_percent","evaluated_points","passed_points",
           "failed_points","dose_difference_percent","dta_mm","low_dose_threshold_percent",
@@ -39,7 +40,10 @@ def summarize_case(folder: Path, *, with_plan: bool=True) -> dict:
     for kind in kinds: row[kind+"_present"]=int(len(kinds[kind])==1)
     if len(kinds["pdf"])==1:
         try:
-            result=parse_verisoft_pdf_text(_pdf_text(kinds["pdf"][0]))
+            pdf_text=_pdf_text(kinds["pdf"][0])
+            result=parse_verisoft_pdf_text(pdf_text)
+            row["qa_analysis_kind"]=("Gamma 3D" if "Gamma 3D" in pdf_text else
+                                     "Volume Analysis" if "Volume Analysis" in pdf_text else None)
             for k in ("gamma_pass_percent","gamma_fail_percent","evaluated_points",
                       "passed_points","failed_points","dose_difference_percent","dta_mm",
                       "low_dose_threshold_percent","low_dose_reference","gamma_passing_limit"):
@@ -49,13 +53,14 @@ def summarize_case(folder: Path, *, with_plan: bool=True) -> dict:
             flags.append("pdf_error_"+type(e).__name__)
     if len(kinds["xcc"])==1:
         try:
-            x=parse_xcc_metadata(kinds["xcc"][0])
-            row["xcc_detector_count"]=x.detector_count
-            row["xcc_measurement_count"]=x.measurement_count
-            row["xcc_interval_s"]=x.sample_interval_s
-            row["xcc_last_time_s"]=x.last_sample_time_s
-            row["xcc_storage_mode"]="DoseAccumulated" if x.storage_mode=="DoseAccumulated" else "other"
-            flags.extend(x.warnings)
+            x=read_xcc_metadata(kinds["xcc"][0])
+            row["xcc_detector_count"]=x.detectors_per_frame
+            row["xcc_measurement_count"]=x.frame_count
+            row["xcc_interval_s"]=x.median_interval_s
+            row["xcc_last_time_s"]=x.last_time_s
+            row["xcc_storage_mode"]="DoseAccumulated" if x.device_store_mode=="DoseAccumulated" else "other"
+            if x.device_store_mode!="DoseAccumulated":
+                flags.append("xcc_storage_mode_not_dose_accumulated")
         except Exception as e:
             flags.append("xcc_error_"+type(e).__name__)
     if with_plan and len(kinds["plan"])==1:
