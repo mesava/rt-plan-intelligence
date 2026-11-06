@@ -71,7 +71,7 @@ def test_headerless_implicit_vr_rtplan_export():
     stream=synthetic_plan()
     d=pydicom.dcmread(stream)
     d.preamble=None
-    d.file_meta=None
+    d.file_meta=FileMetaDataset()
     d.is_implicit_VR=True
     d.is_little_endian=True
     raw=BytesIO()
