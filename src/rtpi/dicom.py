@@ -24,7 +24,19 @@ def _jaw(positions:dict, keys:tuple[str,...], default:tuple[float,float]) -> tup
 def read_rtplan(source:str|Path|BinaryIO|BytesIO, *, include_control_points:bool=False) -> list[dict]:
     """Read supported MLCX beams; skip non-MLCX; reject malformed structures."""
     import pydicom
-    ds=pydicom.dcmread(source,stop_before_pixels=True)
+    from pydicom.errors import InvalidDicomError
+    try:
+        ds=pydicom.dcmread(source,stop_before_pixels=True)
+    except InvalidDicomError:
+        # Some clinical TPS exports contain a valid implicit-VR dataset
+        # without the 128-byte Part-10 preamble or file meta information.
+        # Read conservatively and validate SOP Class/Modality afterwards.
+        if hasattr(source,"seek"):
+            source.seek(0)
+        ds=pydicom.dcmread(source,stop_before_pixels=True,force=True)
+        from pydicom.uid import RTPlanStorage
+        if str(getattr(ds,"SOPClassUID",""))!=str(RTPlanStorage):
+            raise ValueError("Headerless input is not a validated RTPLAN SOP Class")
     if str(getattr(ds,"Modality",""))!="RTPLAN":
         raise ValueError("Expected a DICOM RTPLAN file")
     if not getattr(ds,"BeamSequence",None):
