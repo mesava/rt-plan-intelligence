@@ -64,3 +64,21 @@ def test_dynamic_arc_gets_vmat_mcs():
     result=read_rtplan(synthetic_plan(arc=True))[0]
     assert result["mcs_vmat_jaw_clipped"] is not None
     assert 0 <= result["mcs_vmat_jaw_clipped"] <= 1
+
+def test_headerless_implicit_vr_rtplan_export():
+    # Simulates clinical TPS files containing an implicit-VR dataset without
+    # a DICM preamble or Part-10 file meta block. Never uses a patient file.
+    stream=synthetic_plan()
+    d=pydicom.dcmread(stream)
+    d.preamble=None
+    d.file_meta=None
+    d.is_implicit_VR=True
+    d.is_little_endian=True
+    raw=BytesIO()
+    d.save_as(raw,write_like_original=True)
+    raw.seek(0)
+    assert raw.read(132).find(b"DICM")==-1
+    raw.seek(0)
+    out=read_rtplan(raw)
+    assert out[0]["control_points"]==2
+    assert out[0]["monitor_units"]==100
