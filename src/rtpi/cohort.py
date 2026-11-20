@@ -116,13 +116,16 @@ def dose_link_status(plan: Any,dose: Any) -> dict:
     return {"dose_rtplan_uid_link":uid_status,"dose_patient_id_link":pid_status}
 
 
-def classify_private_folders(root: Path,site_labels: dict[int,str]|None=None) -> list[dict]:
+def classify_private_folders(root: Path,site_labels: dict[int,str]|None=None, *,
+                             rtstruct_zip: Path|None=None) -> list[dict]:
     """Only numeric case indices and non-PHI enumerated groups are exported."""
     if not root.is_dir():
         raise ValueError("Cohort root is not a directory")
     files=sorted((p for p in root.iterdir() if p.is_dir() and p.name.isdecimal()),
                  key=lambda p:int(p.name))
     if not files: raise ValueError("No numeric case folders")
+    from .rtstruct import read_rtstruct_archive, link_rtplan_rtstruct
+    structures=read_rtstruct_archive(rtstruct_zip) if rtstruct_zip is not None else None
     cases=[]
     patient_keys={}
     machine_keys={}
@@ -155,6 +158,10 @@ def classify_private_folders(root: Path,site_labels: dict[int,str]|None=None) ->
             row["machine_group"]="unknown_or_mixed"
         row["site_label"]=(site_labels or {}).get(int(folder.name),"unknown")
         row["site_source"]="user_verified" if int(folder.name) in (site_labels or {}) else "unverified"
+        if structures is not None:
+            row.update(link_rtplan_rtstruct(plan,structures))
+            # Anatomy inferred from RTSTRUCT names is explicitly a proposal:
+            # site_label stays 'unknown' until a separate verified mapping is used.
         if len(doses)==1:
             try:
                 dose=read_dicom(doses[0],"RTDOSE")
@@ -192,11 +199,12 @@ def main() -> None:
     p.add_argument("case_root",type=Path)
     p.add_argument("--output",required=True,type=Path)
     p.add_argument("--sites",type=Path,default=None,help="Verified case_index,site_label CSV")
+    p.add_argument("--rtstruct-zip",type=Path,default=None,help="Private RTSTRUCT archive, read only in local process")
     args=p.parse_args()
     if args.output.resolve().is_relative_to(args.case_root.resolve()):
         p.error("Output must be outside raw case tree")
     sites=read_site_mapping(args.sites) if args.sites else None
-    rows=classify_private_folders(args.case_root,sites)
+    rows=classify_private_folders(args.case_root,sites,rtstruct_zip=args.rtstruct_zip)
     args.output.parent.mkdir(parents=True,exist_ok=True)
     with args.output.open("w",newline="",encoding="utf-8") as f:
         writer=csv.DictWriter(f,fieldnames=list(rows[0]))
