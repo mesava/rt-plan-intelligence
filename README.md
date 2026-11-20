@@ -38,7 +38,7 @@ rtpi-cohort /secure/cases --rtstruct-zip /secure/rtstruct.zip --output /secure/a
 rtpi-cohort /secure/cases --sites /secure/analysis/sites.csv --output /secure/analysis/strata_private.csv
 ```
 
-Для RTSTRUCT сопоставление проходит по PatientID + StudyInstanceUID с независимыми флагами несовпадения RTSTRUCT SOP UID и FrameOfReferenceUID. Схожие названия ROI помогают **только предложить**, но не подтвердить локализацию. Несовпадение FoR запрещает автоматический пространственный дозовый анализ.
+Для RTSTRUCT сопоставление проходит по PatientID + StudyInstanceUID с независимыми флагами несовпадения RTSTRUCT SOP UID и FrameOfReferenceUID. Схожие названия ROI помогают **только предложить**, но не подтвердить локализацию. В текущем исследовательском наборе FoR RTPLAN↔RTDOSE совпадает в 31/31, но FoR RTDOSE↔RTSTRUCT — в 0/31. Несовпадение FoR запрещает автоматический пространственный дозовый анализ.
 
 Классификатор отдельно отмечает вращающиеся арки, фиксированный gantry с динамическими MLC и фиксированный gantry со статическими полями, а также повторяющиеся PatientID внутри выборки. Из RTPLAN **нельзя надёжно восстановить анатомическую локализацию**, поэтому site_label по умолчанию `unknown`. Указанные пользователем категории site не считаются автоматически проверенными. Подробнее: [docs/COHORT.md](docs/COHORT.md).
 

@@ -5,7 +5,7 @@ from pydicom.dataset import Dataset
 from pydicom.sequence import Sequence
 from pydicom.filewriter import dcmwrite
 from rtpi.rtstruct import (
-    read_rtstruct_archive, infer_site_candidate, link_rtplan_rtstruct
+    read_rtstruct_archive, infer_site_candidate, link_rtplan_rtstruct, link_rtdose_rtstruct_frame
 )
 
 
@@ -84,3 +84,21 @@ def test_zip_blocks_non_dicom_and_zero_files(tmp_path):
     try:read_rtstruct_archive(zpath)
     except ValueError as exc: assert "DICOM" in str(exc)
     else:raise AssertionError("Accepted non-DICOM")
+
+
+def test_dose_structure_frame_check_is_independent(tmp_path):
+    rs=_rtstruct(["PTV_Esoph"])
+    bio=BytesIO()
+    dcmwrite(bio,rs,implicit_vr=True,little_endian=True,enforce_file_format=False)
+    zp=tmp_path/"rs.zip"
+    with ZipFile(zp,"w") as z:z.writestr("synthetic.dcm",bio.getvalue())
+    structures=read_rtstruct_archive(zp)
+    dose=Dataset()
+    dose.PatientID=rs.PatientID
+    dose.StudyInstanceUID=rs.StudyInstanceUID
+    dose.FrameOfReferenceUID="1.2.826.0.1.3680043.2.1125.999"
+    assert link_rtdose_rtstruct_frame(dose,structures)["rtdose_rtstruct_frame_of_reference"]=="mismatch"
+    dose.FrameOfReferenceUID=rs.FrameOfReferenceUID
+    assert link_rtdose_rtstruct_frame(dose,structures)["rtdose_rtstruct_frame_of_reference"]=="match"
+    dose.PatientID="OTHER"
+    assert link_rtdose_rtstruct_frame(dose,structures)["rtdose_rtstruct_frame_of_reference"]=="missing"
