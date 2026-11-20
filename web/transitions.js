@@ -8,6 +8,10 @@ function calculate(cps,beamMU,sectorWidth=30){
    return {transitions:[],sectors:[],summary:{maxLeafStep:0,zeroMuLeafMoves:0}};
  if(!(sectorWidth>0) || 360%sectorWidth!==0)throw Error("Invalid sector width");
  if(!Number.isFinite(beamMU)||beamMU<0)throw Error("Invalid MU");
+ for(let i=0;i<cps.length;i++){
+   if(!Number.isFinite(cps[i].mu) || cps[i].mu<0 ||
+      (i>0 && cps[i].mu<cps[i-1].mu))throw Error("Decreasing CMW");
+ }
  const final=cps[cps.length-1].mu;
  if(!(final>0))throw Error("Missing final meterset");
  const bySector=new Map(),transitions=[];
