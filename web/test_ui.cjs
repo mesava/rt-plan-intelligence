@@ -3,6 +3,7 @@ const assert=require("node:assert/strict");
 const fs=require("node:fs");
 const vm=require("node:vm");
 const complexity=require("./complexity.js");
+const transitions=require("./transitions.js");
 test("browser synthetic demo initializes and navigates plans/CP",()=>{
  const html=fs.readFileSync(__dirname+"/index.html","utf8");
  const scripts=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)].map(x=>x[1]).filter(x=>x.trim());
@@ -16,13 +17,15 @@ test("browser synthetic demo initializes and navigates plans/CP",()=>{
    },
    querySelectorAll(){return [];}
  };
- vm.runInNewContext(scripts[0],{document,window:{RTPIComplexity:complexity}}, {timeout:3000});
+ vm.runInNewContext(scripts[0],{document,window:{RTPIComplexity:complexity,RTPITransitions:transitions}}, {timeout:3000});
  const el=id=>document.getElementById(id);
  assert.equal(el("mcp").textContent,"44");
  assert.match(el("mmcs").textContent,/0[,.][0-9]+/);
  assert.match(el("metricrows").innerHTML,/beamAAV/);
  assert.match(el("mlcSvg").innerHTML,/<rect/);
  assert.match(el("trend").innerHTML,/<polyline/);
+ assert.match(el("transitionrows").innerHTML,/<tr/);
+ assert.match(el("sectorrows").innerHTML,/0–30/);
  el("cp").value="11";el("cp").oninput();
  assert.match(el("cpbadge").textContent,/11/);
  el("plan").value="imrt";el("plan").handlers.change();
@@ -30,4 +33,5 @@ test("browser synthetic demo initializes and navigates plans/CP",()=>{
  assert.equal(el("mmcs").textContent,"—");
  assert.equal(el("mlsv").textContent,"—");
  assert.equal(el("maav").textContent,"—");
+ assert.match(el("sectorrows").innerHTML,/фиксированного gantry/);
 });

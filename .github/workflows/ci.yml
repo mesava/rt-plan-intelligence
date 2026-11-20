@@ -35,6 +35,6 @@ jobs:
         with:
           node-version: '22'
       - name: JavaScript syntax
-        run: node --check web/complexity.js
+        run: node --check web/complexity.js && node --check web/transitions.js
       - name: Reference synthetic metric cases
-        run: node --test web/test_complexity.cjs web/test_ui.cjs
+        run: node --test web/test_complexity.cjs web/test_transitions.cjs web/test_ui.cjs

@@ -54,7 +54,7 @@ main{min-width:0;padding:30px 46px 65px;max-width:1620px;width:100%;margin:0 aut
   <div class="side-bottom"><strong>Открытый проект</strong><p>Платформа для исследования сложности IMRT/VMAT и её связи с результатами QA.</p><a href="https://github.com/mesava/rt-plan-intelligence" target="_blank" rel="noopener noreferrer">Исходный код на GitHub ↗</a></div>
 </aside>
 <main id="overview">
-  <div class="topbar"><div class="path">Платформа <span style="margin:0 8px;color:#bec8d4">/</span><strong>Интерактивная демонстрация</strong></div><div class="top-right"><span class="version">v0.2 · Web demo</span><span class="top-badge"><span class="dot"></span>Синтетические данные</span></div></div>
+  <div class="topbar"><div class="path">Платформа <span style="margin:0 8px;color:#bec8d4">/</span><strong>Интерактивная демонстрация</strong></div><div class="top-right"><span class="version">v0.5 · Web demo</span><span class="top-badge"><span class="dot"></span>Синтетические данные</span></div></div>
   <header class="hero"><div><div class="eyebrow">Техническая аналитика лучевой терапии</div><h1>Анализ модуляции плана</h1><p>Исследуйте геометрию MLC, динамику контрольных точек и показатели сложности в интерактивной среде.</p></div><a class="outline" href="https://github.com/mesava/rt-plan-intelligence" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a></header>
   <div class="notice"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16859a" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-10v1"/></svg><div><strong>Исследовательская демоверсия.</strong> Все показанные планы генерируются в браузере и не относятся к пациентам. Загрузка DICOM, измеренная gamma и прогноз QA пока недоступны. Не используйте демоданные для клинических решений.</div></div>
   <div class="controlbar">
@@ -75,14 +75,23 @@ main{min-width:0;padding:30px 46px 65px;max-width:1620px;width:100%;margin:0 aut
   </section>
   <div class="section-title" id="metrics"><h2>Технические показатели</h2><p>Вычислены из синтетических координат</p></div>
   <section class="panel table-scroll"><table class="table"><thead><tr><th>Метрика</th><th>Определение в демо</th><th class="right">Значение</th></tr></thead><tbody id="metricrows"></tbody></table></section>
-  <section class="method-grid" id="method">
-    <div class="panel method"><h3>Как интерпретировать эту версию</h3><p>Демо иллюстрирует геометрические вычисления. Для VMAT включены исследовательские jaw-aware MCSv, LSV и beamAAV. Для IMRT пока показывается геометрия MLC, а эти индексы не рассчитываются.</p><div class="check"><b>✓</b><span>Апертура рассчитывается по пересечению MLC и jaws.</span></div><div class="check"><b>✓</b><span>SAS5 оценивается по открытым парам на конечных CP с весом ΔCMW.</span></div><div class="check"><b>✓</b><span>Leaf Travel суммирует перемещения обеих банков, включая лепестки вне jaws.</span></div><a class="outline" href="https://github.com/mesava/rt-plan-intelligence/blob/main/docs/METRICS.md" target="_blank" rel="noopener noreferrer">Формулы и ограничения ↗</a></div>
-    <div class="panel method"><h3>Следующие этапы</h3><div class="soon"><div class="soon-row"><span>Валидация MCS / LSV / AAV</span><em>В разработке</em></div><div class="soon-row"><span>Обработка RTPLAN из DICOM</span><em>Локальная версия</em></div><div class="soon-row"><span>Импорт XCC / PDF QA (локально)</span><em>Alpha · без веб-загрузки</em></div><div class="soon-row"><span>RTSTRUCT, этапы лечения и локализации</span><em>Локальный анализ · v0.4</em></div><div class="soon-row"><span>Модели предсказания Gamma</span><em>Исследование</em></div></div></div>
+  <div class="section-title" id="transitions"><h2>Переходы контрольных точек</h2><p>Технические индикаторы · только синтетические данные</p></div>
+ <section class="panel table-scroll"><div class="panel-header"><div><div class="panel-title">CP → CP: наибольший шаг MLC на MU</div><div class="panel-sub">Сортировка по максимальному перемещению одного лепестка / ΔMU, без порога допуска</div></div></div>
+  <table class="table"><thead><tr><th>Переход CP</th><th>ΔMU</th><th>Макс. лист, мм</th><th>Лист / MU, мм/MU</th><th>ΔGantry, °</th></tr></thead><tbody id="transitionrows"></tbody></table>
+ </section>
+ <div class="section-title" id="sectors"><h2>Сектора VMAT</h2><p id="sectorlabel">Угловая агрегация по 30° · интервал назначается по середине</p></div>
+ <section class="panel table-scroll">
+  <table class="table"><thead><tr><th>Сектор, °</th><th>MU</th><th>Пройдено gantry, °</th><th>Смещение MLC, мм</th><th>Макс. лист, мм</th></tr></thead><tbody id="sectorrows"></tbody></table>
+ </section>
+ <section class="method-grid" id="method">
+    <div class="panel method"><h3>Как интерпретировать эту версию</h3><p>Демо иллюстрирует геометрические вычисления MLC и переходы CP. Для VMAT доступны технические угловые сектора (не распределение дозы), а также исследовательские jaw-aware MCSv, LSV и beamAAV. Для IMRT пока показывается геометрия MLC, а эти индексы не рассчитываются.</p><div class="check"><b>✓</b><span>Апертура рассчитывается по пересечению MLC и jaws.</span></div><div class="check"><b>✓</b><span>SAS5 оценивается по открытым парам на конечных CP с весом ΔCMW.</span></div><div class="check"><b>✓</b><span>Leaf Travel суммирует перемещения обеих банков, включая лепестки вне jaws.</span></div><a class="outline" href="https://github.com/mesava/rt-plan-intelligence/blob/main/docs/METRICS.md" target="_blank" rel="noopener noreferrer">Формулы и ограничения ↗</a></div>
+    <div class="panel method"><h3>Следующие этапы</h3><div class="soon"><div class="soon-row"><span>Валидация MCS / LSV / AAV</span><em>В разработке</em></div><div class="soon-row"><span>Обработка RTPLAN из DICOM</span><em>Локальная версия</em></div><div class="soon-row"><span>Импорт XCC / PDF QA (локально)</span><em>Alpha · без веб-загрузки</em></div><div class="soon-row"><span>MLC переходы / секторы VMAT</span><em>v0.5 · CP геометрия</em></div><div class="soon-row"><span>Модели предсказания Gamma</span><em>Исследование</em></div></div></div>
   </section>
   <footer class="footer"><span>RT Plan Intelligence © 2026 · MIT · Исследовательское ПО, не медицинское изделие</span><span>Демонстрация не использует файлы пациентов · <a href="https://github.com/mesava/rt-plan-intelligence" target="_blank" rel="noopener noreferrer">GitHub ↗</a></span></footer>
 </main>
 </div>
 <script src="/complexity.js"></script>
+<script src="/transitions.js"></script>
 <script>
 (function(){
 "use strict";
@@ -106,7 +115,7 @@ function makePlan(cfg){
    const center=cfg.shift*Math.sin(i*.25+t*.15+cfg.seed);
    left.push(center-gap/2);right.push(center+gap/2);
   }
-  cps.push({left,right,mu:t/(cfg.count-1),angle:180*t/(cfg.count-1)});
+  cps.push({left,right,mu:t/(cfg.count-1),angle:cfg.label==="VMAT"?180*t/(cfg.count-1):90});
  }
  return cps;
 }
@@ -163,6 +172,7 @@ function drawTrend(areas,travels,selected){
 }
 function refresh(){
  const key=el("plan").value,cfg=configs[key],cps=makePlan(cfg),stat=metrics(cps,cfg);
+ const diag=window.RTPITransitions.calculate(cps,cfg.mu,30);
  el("modality").textContent=cfg.label;el("beamlabel").textContent=cfg.beam;
  el("mcp").textContent=String(cfg.count);el("mmu").innerHTML=fmt(cfg.mu,0)+'<span class="metric-unit">MU</span>';
  el("marea").innerHTML=fmt(stat.meanArea,0)+'<span class="metric-unit">мм²</span>';
@@ -178,9 +188,20 @@ function refresh(){
  ["Total Leaf Travel","Сумма смещений двух банков",fmt(stat.totalTravel,1)+" мм"],
  ["Mean CP-to-CP Leaf Travel","Среднее движение на переход",fmt(stat.meanTravel,1)+" мм"],
  ["Max CP-to-CP Leaf Travel","Максимальное движение на переход",fmt(stat.maxTravel,1)+" мм"],
- ["Median Leaf Gap","Медиана положительных gap по CP",fmt(stat.medianGap,2)+" мм"]
+ ["Median Leaf Gap","Медиана положительных gap по CP",fmt(stat.medianGap,2)+" мм"],
+ ["Max single-leaf step","Максимальное перемещение одного лепестка CP → CP",fmt(diag.summary.maxLeafStep,2)+" мм"],
+ ["Largest single-leaf mm/MU","Наибольшая доля движения одного лепестка на ΔMU",fmt(diag.summary.maxMmPerMu,3)+" мм/MU"],
+ ["Zero-MU leaf transitions","Переходы с движением MLC при ΔCMW = 0",fmt(diag.summary.zeroMuLeafMoves,0)]
  ];
  el("metricrows").innerHTML=table.map(r=>'<tr><td class="code">'+r[0]+'</td><td class="muted">'+r[1]+'</td><td class="right"><strong>'+r[2]+'</strong></td></tr>').join('');
+ const top=diag.transitions.filter(t=>t.maxMmPerMu!==null).sort((a,b)=>b.maxMmPerMu-a.maxMmPerMu).slice(0,6);
+ el("transitionrows").innerHTML=top.map(t=>'<tr><td class="code">'+t.from+' → '+t.to+'</td><td>'+fmt(t.deltaMu,2)+'</td><td>'+fmt(t.maxLeafStep,2)+'</td><td><strong>'+fmt(t.maxMmPerMu,3)+'</strong></td><td>'+(t.sweepDeg===null?"—":fmt(t.sweepDeg,2))+'</td></tr>').join('');
+ el("sectorrows").innerHTML=diag.sectors.length?
+    diag.sectors.map(t=>'<tr><td class="code">'+t.start+'–'+t.end+'</td><td>'+fmt(t.mu,2)+'</td><td>'+fmt(t.sweepDeg,1)+'</td><td>'+fmt(t.leafTravel,1)+'</td><td><strong>'+fmt(t.maxLeaf,2)+'</strong></td></tr>').join(''):
+    '<tr><td colspan="5" class="muted">Для фиксированного gantry угловые сектора не применяются.</td></tr>';
+ el("sectorlabel").textContent=cfg.label==="VMAT"?
+   "По 30° · назначение CP-интервала по середине · не карта дозового вклада":
+   "Фиксированный gantry — для IMRT применяется анализ переходов CP";
  el("cp").max=String(cfg.count-1);el("cp").value="0";
  function show(){
  const index=Number(el("cp").value);
