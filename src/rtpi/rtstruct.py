@@ -139,3 +139,21 @@ def link_rtplan_rtstruct(plan, structures: list[StructureIndex]) -> dict:
         "site_verified": False,
         "geometry_safe_to_combine": False,
     }
+
+
+def link_rtdose_rtstruct_frame(dose, structures: list[StructureIndex]) -> dict:
+    """Independent DICOM Frame-of-Reference check for dose vs RTSTRUCT."""
+    pid = str(getattr(dose, "PatientID", "")).strip()
+    study = str(getattr(dose, "StudyInstanceUID", "")).strip()
+    matches = [s for s in structures if pid and study and
+               s.patient_id == pid and s.study_uid == study]
+    if len(matches) != 1:
+        return {"rtdose_rtstruct_frame_of_reference":
+                "missing" if not matches else "ambiguous"}
+    dose_frame = str(getattr(dose, "FrameOfReferenceUID", "")).strip()
+    structure_frame = matches[0].frame_uid
+    if not dose_frame or not structure_frame:
+        status = "unverified"
+    else:
+        status = "match" if dose_frame == structure_frame else "mismatch"
+    return {"rtdose_rtstruct_frame_of_reference": status}
