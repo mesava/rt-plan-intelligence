@@ -124,7 +124,7 @@ def classify_private_folders(root: Path,site_labels: dict[int,str]|None=None, *,
     files=sorted((p for p in root.iterdir() if p.is_dir() and p.name.isdecimal()),
                  key=lambda p:int(p.name))
     if not files: raise ValueError("No numeric case folders")
-    from .rtstruct import read_rtstruct_archive, link_rtplan_rtstruct
+    from .rtstruct import read_rtstruct_archive, link_rtplan_rtstruct, link_rtdose_rtstruct_frame
     structures=read_rtstruct_archive(rtstruct_zip) if rtstruct_zip is not None else None
     cases=[]
     patient_keys={}
@@ -166,11 +166,23 @@ def classify_private_folders(root: Path,site_labels: dict[int,str]|None=None, *,
             try:
                 dose=read_dicom(doses[0],"RTDOSE")
                 row.update(dose_link_status(plan,dose))
+                if structures is not None:
+                    row.update(link_rtdose_rtstruct_frame(dose,structures))
+                    a=str(getattr(plan,"FrameOfReferenceUID","")).strip()
+                    b=str(getattr(dose,"FrameOfReferenceUID","")).strip()
+                    row["rtplan_rtdose_frame_of_reference"]=(
+                        "unverified" if not a or not b else "match" if a==b else "mismatch")
             except Exception:
                 row.update({"dose_rtplan_uid_link":"parse_error","dose_patient_id_link":"parse_error"})
+                if structures is not None:
+                    row.update({"rtdose_rtstruct_frame_of_reference":"parse_error",
+                                "rtplan_rtdose_frame_of_reference":"parse_error"})
         else:
             row.update({"dose_rtplan_uid_link":"missing_or_ambiguous",
                         "dose_patient_id_link":"missing_or_ambiguous"})
+            if structures is not None:
+                row.update({"rtdose_rtstruct_frame_of_reference":"missing_or_ambiguous",
+                            "rtplan_rtdose_frame_of_reference":"missing_or_ambiguous"})
         cases.append(row)
     counts=Counter(r["patient_group"] for r in cases)
     for row in cases:
