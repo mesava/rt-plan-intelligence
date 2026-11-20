@@ -26,15 +26,19 @@ rtpi-qa /secure/cases --output /secure/reports/qa_private.csv
 
 **Только для разрешённого локального использования.** Исходные DICOM, PDF и XCC не загружаются на публичный сервер. XCC не является готовым gamma-отчётом, а наличие четырёх файлов в папке ещё не доказывает верную связку план↔измерение. Подробнее: [docs/QA_IMPORT.md](docs/QA_IMPORT.md).
 
-## Локальная стратификация смешанной выборки
+## Локальная стратификация смешанной выборки и RTSTRUCT (Python v0.4)
 
 Перед корреляциями технических метрик с GPR для каждого RTPLAN следует извлекать `NominalBeamEnergy`, `PrimaryFluenceModeSequence.FluenceMode`, тип поля и геометрию вращения gantry, а не предполагать однородность выборки. Структурное соответствие RTDOSE↔RTPLAN проверяется по `ReferencedSOPInstanceUID` и `PatientID` **в памяти без их экспорта**.
 
 ```bash
 rtpi-cohort /secure/cases --output /secure/analysis/strata_private.csv
+# Сопоставление RTSTRUCT только внутри закрытой локальной среды:
+rtpi-cohort /secure/cases --rtstruct-zip /secure/rtstruct.zip --output /secure/analysis/strata_private.csv
 # Необязательная ручная проверенная разметка локализаций
 rtpi-cohort /secure/cases --sites /secure/analysis/sites.csv --output /secure/analysis/strata_private.csv
 ```
+
+Для RTSTRUCT сопоставление проходит по PatientID + StudyInstanceUID с независимыми флагами несовпадения RTSTRUCT SOP UID и FrameOfReferenceUID. Схожие названия ROI помогают **только предложить**, но не подтвердить локализацию. Несовпадение FoR запрещает автоматический пространственный дозовый анализ.
 
 Классификатор отдельно отмечает вращающиеся арки, фиксированный gantry с динамическими MLC и фиксированный gantry со статическими полями, а также повторяющиеся PatientID внутри выборки. Из RTPLAN **нельзя надёжно восстановить анатомическую локализацию**, поэтому site_label по умолчанию `unknown`. Указанные пользователем категории site не считаются автоматически проверенными. Подробнее: [docs/COHORT.md](docs/COHORT.md).
 
