@@ -8,6 +8,7 @@ import plotly.graph_objects as go
 import streamlit as st
 from rtpi.dicom import read_rtplan
 from rtpi.metrics import Aperture, calculate_beam, control_point_records
+from rtpi.transitions import analyze_transitions
 
 st.set_page_config(page_title="RT Plan Intelligence",page_icon="🔬",layout="wide")
 
@@ -22,7 +23,12 @@ def synthetic_demo():
         aps.append(Aperture(center-gap/2,center+gap/2,boundaries,(-25.,25.),(-35.,35.)))
     cmw=np.linspace(0,1,len(aps)).tolist()
     beam=calculate_beam(1,"Синтетическая арка",aps,cmw,500).to_dict()
-    beam["control_point_data"]=control_point_records(aps,cmw,np.linspace(0,180,len(aps)).tolist())
+    angles=np.linspace(0,180,len(aps)).tolist()
+    beam["control_point_data"]=control_point_records(aps,cmw,angles)
+    trace=analyze_transitions(aps,cmw,angles,500.)
+    beam["transition_summary"]=trace.summary
+    beam["transition_data"]=trace.transitions
+    beam["sector_data"]=trace.sectors
     return [{"plan_index":1,**beam}]
 
 def aperture_figure(cp:dict):
@@ -48,7 +54,7 @@ def aperture_figure(cp:dict):
     return fig
 
 st.title("RT Plan Intelligence")
-st.caption("v0.2.0 · Геометрический анализ RTPLAN (MLCX) · Исследовательское ПО")
+st.caption("v0.5.0 · Технические CP-переходы / VMAT-сектора · Исследовательское ПО")
 st.warning("Не использовать для клинического допуска плана. Технические показатели не заменяют дозиметрические QA-измерения.")
 with st.expander("Конфиденциальность и ограничения"):
     st.markdown("""**Пациентские DICOM нельзя загружать в публичную демонстрационную версию.**
@@ -75,7 +81,8 @@ results=[]
 if files:
     for i,file in enumerate(files,1):
         try:
-            for beam in read_rtplan(BytesIO(file.getvalue()),include_control_points=True):
+            for beam in read_rtplan(BytesIO(file.getvalue()),include_control_points=True,
+                                    include_transitions=True):
                 results.append({"plan_index":i,**beam})
         except Exception as exc:
             st.error(f"Файл №{i}: {type(exc).__name__}: {exc}")
@@ -85,7 +92,15 @@ if demo and not files:
 
 if results:
     st.subheader("Сводка по лучам/аркам")
-    frame=pd.DataFrame([{k:v for k,v in r.items() if k!="control_point_data"} for r in results])
+    nested={"control_point_data","transition_summary","transition_data","sector_data"}
+    frame=pd.DataFrame([
+        {**{k:v for k,v in result.items() if k not in nested},
+         "cp_max_single_leaf_step_mm":
+             result.get("transition_summary",{}).get("max_single_leaf_step_mm"),
+         "cp_zero_mu_leaf_motion_count":
+             result.get("transition_summary",{}).get("zero_mu_leaf_motion_count")}
+        for result in results
+    ])
     st.dataframe(frame,hide_index=True,use_container_width=True)
     st.download_button("Скачать CSV без идентификаторов",frame.to_csv(index=False).encode("utf-8-sig"),
                        file_name="rtpi_beam_metrics.csv",mime="text/csv",type="primary")
@@ -101,6 +116,42 @@ if results:
         st.metric("Leaf Travel, мм",f"{result['leaf_travel_total_mm']:,.1f}")
         st.caption("Leaf Travel учитывает все лепестки, включая вне jaws.")
     cp_data=pd.DataFrame([{k:v for k,v in cp.items() if not isinstance(v,list)} for cp in cps])
+    trace=result.get("transition_summary",{})
+    transitions=result.get("transition_data",[])
+    sectors=result.get("sector_data",[])
+    st.subheader("Переходы CP → CP: техническая диагностика")
+    st.caption("Максимальный шаг одного лепестка, ΔMU и движение на MU. "
+               "При отсутствии машинных логов это геометрия, а не фактические "
+               "скорости MLC или критерий допуска плана.")
+    tc=st.columns(3)
+    tc[0].metric("Макс. шаг одного лепестка",
+                 "—" if trace.get("max_single_leaf_step_mm") is None
+                 else f"{trace['max_single_leaf_step_mm']:.2f} мм")
+    tc[1].metric("Движение MLC без прироста MU",
+                 str(trace.get("zero_mu_leaf_motion_count",0)))
+    tc[2].metric("Поворот gantry по CP",
+                 f"{trace.get('gantry_sweep_shortest_total_deg',0):.1f}°")
+    if transitions:
+        tdf=pd.DataFrame(transitions)
+        tdf=tdf.sort_values("max_leaf_mm_per_mu",ascending=False,na_position="last")
+        st.dataframe(tdf,hide_index=True,use_container_width=True)
+        st.download_button("CSV по переходам CP",
+                           tdf.to_csv(index=False).encode("utf-8-sig"),
+                           file_name="rtpi_cp_transitions.csv",mime="text/csv")
+    if sectors:
+        st.subheader("Угловые сектора VMAT (по 30°)")
+        st.caption("Суммы ΔMU и перемещений MLC по середине CP-интервала. "
+                   "Это не вклад сектора в дозу, поэтому удаление сектора "
+                   "по одной этой диаграмме недопустимо.")
+        sdf=pd.DataFrame(sectors)
+        st.bar_chart(sdf.set_index("sector_start_deg")["sum_delta_mu"])
+        st.dataframe(sdf,hide_index=True,use_container_width=True)
+        st.download_button("CSV по секторам VMAT",
+                           sdf.to_csv(index=False).encode("utf-8-sig"),
+                           file_name="rtpi_vmat_sectors.csv",mime="text/csv")
+    else:
+        st.info("Фиксированный gantry: секторный VMAT-анализ не применяется; "
+                "используйте таблицу переходов CP выше.")
     st.subheader("MCSv · LSV · beamAAV (исследовательские)")
     st.caption("Jaw-aware реализация с весами ΔCMW. Эти показатели не являются подтверждением доставляемости.")
     qa_cols=st.columns(3)
