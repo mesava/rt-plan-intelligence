@@ -82,3 +82,17 @@ def test_headerless_implicit_vr_rtplan_export():
     out=read_rtplan(raw)
     assert out[0]["control_points"]==2
     assert out[0]["monitor_units"]==100
+
+
+def test_read_optional_transition_metadata_does_not_leak_identifiers():
+    result=read_rtplan(synthetic_plan(arc=True),include_transitions=True)[0]
+    assert result["transition_summary"]["transition_count"]==1
+    assert result["transition_summary"]["rotating_transition_count"]==1
+    assert result["transition_data"][0]["delta_mu"]==pytest.approx(100.)
+    assert result["transition_data"][0]["gantry_sweep_shortest_deg"]==pytest.approx(10.)
+    assert len(result["sector_data"])==1
+    assert "Synthetic^Only" not in str(result)
+    baseline=read_rtplan(synthetic_plan(arc=True))[0]
+    assert "transition_data" not in baseline
+    static=read_rtplan(synthetic_plan(arc=False),include_transitions=True)[0]
+    assert static["sector_data"]==[]
