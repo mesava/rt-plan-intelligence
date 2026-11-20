@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import BinaryIO
 import numpy as np
 from .metrics import Aperture, calculate_beam, control_point_records
+from .transitions import MachineLimits, analyze_transitions
 
 def _positions(sequence,previous:dict) -> dict:
     result=previous.copy()
@@ -21,7 +22,9 @@ def _jaw(positions:dict, keys:tuple[str,...], default:tuple[float,float]) -> tup
             return float(jaw[0]),float(jaw[1])
     return default
 
-def read_rtplan(source:str|Path|BinaryIO|BytesIO, *, include_control_points:bool=False) -> list[dict]:
+def read_rtplan(source:str|Path|BinaryIO|BytesIO, *, include_control_points:bool=False,
+                include_transitions:bool=False, sector_width_deg:int=30,
+                machine_limits:MachineLimits|None=None) -> list[dict]:
     """Read supported MLCX beams; skip non-MLCX; reject malformed structures."""
     import pydicom
     from pydicom.errors import InvalidDicomError
@@ -94,6 +97,15 @@ def read_rtplan(source:str|Path|BinaryIO|BytesIO, *, include_control_points:bool
                 "LSV/beamAAV are geometric CP descriptors only."
             )
 
+        if include_transitions:
+            summary=analyze_transitions(
+                aps,cmw,angles,mu_by_beam.get(num),
+                final_cmw=float(beam.FinalCumulativeMetersetWeight)
+                          if hasattr(beam,"FinalCumulativeMetersetWeight") else None,
+                sector_width_deg=sector_width_deg,limits=machine_limits)
+            out["transition_summary"]=summary.summary
+            out["transition_data"]=summary.transitions
+            out["sector_data"]=summary.sectors
         if include_control_points: out["control_point_data"]=control_point_records(aps,cmw,angles)
         summaries.append(out)
     if not summaries:
